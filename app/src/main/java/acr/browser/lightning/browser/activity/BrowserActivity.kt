@@ -1288,6 +1288,39 @@ abstract class BrowserActivity : ThemableBrowserActivity(), BrowserView, UIContr
         if (query.isEmpty()) {
             return
         }
+
+        //TODO(Simone) modify to limit surfing the web
+        var value = "";
+        try {
+            val cursor = contentResolver.query(Uri.parse("content://com.comelitgroup.jsonconfigurator.provider/whitelist"), null, null, null, null);
+            if(cursor.count > 0) {
+                while (cursor.moveToNext()) {
+                    value = cursor.getString(cursor.getColumnIndex("list"));
+                }
+            }
+            cursor.close();
+        }catch (ex: Exception) {
+            // Error occurred while creating the File
+            Log.e(TAG, "Unable to contact content provider", ex)
+        }
+
+        var filter = false;
+        if(!value.equals("")){
+            val separate1 = value.split(",".toRegex())
+            for (v in separate1){
+                if(query.trim().startsWith(v))
+                    filter = true;
+            }
+        }else
+            filter = true;
+
+        if(filter)
+            Log.i("FILTER","Query contains key word");
+        else {
+            Log.i("FILTER", "Query DO NOT contain key word");
+            return;
+        }
+
         val searchUrl = "$searchText${UrlUtils.QUERY_PLACE_HOLDER}"
         if (currentTab != null) {
             currentTab.stopLoading()
